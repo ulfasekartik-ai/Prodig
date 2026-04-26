@@ -43,7 +43,9 @@
             <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                 <div class="flex items-center gap-2 mb-2">
                     <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span class="text-sm font-medium text-green-700">Kupon {{ $autoCouponData['code'] }} dari {{ $autoCouponData['member_name'] }} telah diterapkan — diskon {{ $autoCouponData['discount_formatted'] }}</span>
+                    <span class="text-sm font-medium text-green-700">
+                        Kupon <strong>{{ $autoCouponData['code'] }}</strong>@if($autoCouponData['member_name']) dari {{ $autoCouponData['member_name'] }}@endif telah diterapkan — diskon {{ $autoCouponData['discount_label'] }} ({{ $autoCouponData['discount_formatted'] }})
+                    </span>
                 </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-600">Harga asli</span>

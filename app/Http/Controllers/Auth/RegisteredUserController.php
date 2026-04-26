@@ -17,13 +17,14 @@ class RegisteredUserController extends Controller
 {
     public function create(Request $request): View
     {
-        $ref = $request->get('ref', $request->cookie('ref') ?? session('ref_code'));
+        $ref = $this->resolveRefCode($request);
 
         $refMemberName = null;
         if ($ref) {
             $refMember = User::where('referral_code', $ref)->first();
             if ($refMember) {
                 $refMemberName = $refMember->name;
+                session(['ref_code' => $ref]);
             }
         }
 
@@ -43,7 +44,7 @@ class RegisteredUserController extends Controller
         ]);
 
         $uplineId = null;
-        $refCode = $request->input('ref', $request->cookie('ref') ?? session('ref_code'));
+        $refCode = $this->resolveRefCode($request);
         if ($refCode) {
             $upline = User::where('referral_code', $refCode)->first();
             if ($upline) {
@@ -70,5 +71,22 @@ class RegisteredUserController extends Controller
         }
 
         return redirect(route('dashboard', absolute: false));
+    }
+
+    private function resolveRefCode(Request $request): ?string
+    {
+        $candidates = [
+            $request->input('ref'),
+            $request->cookie('ref'),
+            session('ref_code'),
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (is_string($candidate) && trim($candidate) !== '') {
+                return trim($candidate);
+            }
+        }
+
+        return null;
     }
 }

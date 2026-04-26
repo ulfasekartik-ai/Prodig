@@ -16,11 +16,17 @@
                 <div class="text-2xl font-bold text-indigo-600">Rp {{ number_format($product->price, 0, ',', '.') }}</div>
             </div>
 
+            @php
+                $registerUrl = route('register');
+                if (session('ref_code')) {
+                    $registerUrl .= '?ref=' . urlencode(session('ref_code'));
+                }
+            @endphp
             <div class="flex gap-4">
                 @auth
                     <a href="{{ route('checkout', $product->slug) }}" class="flex-1 bg-indigo-600 text-white text-center py-3 rounded-lg hover:bg-indigo-700 font-bold text-lg">Beli Sekarang</a>
                 @else
-                    <a href="{{ route('register') }}" class="flex-1 bg-indigo-600 text-white text-center py-3 rounded-lg hover:bg-indigo-700 font-bold text-lg">Beli Sekarang</a>
+                    <a href="{{ $registerUrl }}" class="flex-1 bg-indigo-600 text-white text-center py-3 rounded-lg hover:bg-indigo-700 font-bold text-lg">Beli Sekarang</a>
                 @endauth
                 <a href="{{ route('home') }}" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium">Kembali</a>
             </div>

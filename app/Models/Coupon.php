@@ -44,6 +44,11 @@ class Coupon extends Model
 
     public function isValidForUser(User $user): bool
     {
+        return $this->isAccessibleBy($user, null);
+    }
+
+    public function isAccessibleBy(User $user, ?User $referrer = null): bool
+    {
         if (!$this->is_active) {
             return false;
         }
@@ -56,11 +61,24 @@ class Coupon extends Model
             return false;
         }
 
-        if ($this->members()->count() > 0 && !$this->members()->where('user_id', $user->id)->exists()) {
-            return false;
+        $memberCount = $this->members()->count();
+        if ($memberCount === 0) {
+            return true;
         }
 
-        return true;
+        if ($this->members()->where('user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        if ($referrer && $this->members()->where('user_id', $referrer->id)->exists()) {
+            return true;
+        }
+
+        if ($user->upline_id && $this->members()->where('user_id', $user->upline_id)->exists()) {
+            return true;
+        }
+
+        return false;
     }
 
     public function isValidForProduct(Product $product): bool
