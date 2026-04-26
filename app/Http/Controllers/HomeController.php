@@ -28,8 +28,12 @@ class HomeController extends Controller
 
                 $autoCoupon = $this->findAutoCoupon($refMember, $product);
                 if ($autoCoupon) {
-                    session(['auto_coupon' => $autoCoupon->code]);
-                    session(['auto_coupon_member_name' => $refMember->name]);
+                    session([
+                        'auto_coupon' => $autoCoupon->code,
+                        'auto_coupon_member_name' => $refMember->name,
+                    ]);
+                } else {
+                    session()->forget(['auto_coupon', 'auto_coupon_member_name']);
                 }
             }
         }

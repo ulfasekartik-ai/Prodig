@@ -12,6 +12,12 @@
     <style>img { max-width: 100%; height: auto; }</style>
 </head>
 <body class="font-sans antialiased bg-white">
+    @php
+        $registerUrl = route('register');
+        if (session('ref_code')) {
+            $registerUrl .= '?ref=' . urlencode(session('ref_code'));
+        }
+    @endphp
 
     {{-- Navigation --}}
     <nav class="bg-white/90 backdrop-blur-sm border-b border-gray-100 fixed top-0 left-0 right-0 z-50">
@@ -25,7 +31,7 @@
                         <a href="{{ route('dashboard') }}" class="text-gray-700 hover:text-indigo-600 font-medium">Dashboard</a>
                     @else
                         <a href="{{ route('login') }}" class="text-gray-700 hover:text-indigo-600 font-medium">Login</a>
-                        <a href="{{ route('register') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">Daftar</a>
+                        <a href="{{ $registerUrl }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">Daftar</a>
                     @endauth
                 </div>
             </div>
@@ -50,7 +56,7 @@
                                     Beli Sekarang — Rp {{ number_format($product->price, 0, ',', '.') }}
                                 </a>
                             @else
-                                <a href="{{ route('register') }}" class="bg-indigo-600 text-white px-8 py-4 rounded-xl hover:bg-indigo-700 font-bold text-lg shadow-lg shadow-indigo-500/30 transition-all hover:scale-105">
+                                <a href="{{ $registerUrl }}" class="bg-indigo-600 text-white px-8 py-4 rounded-xl hover:bg-indigo-700 font-bold text-lg shadow-lg shadow-indigo-500/30 transition-all hover:scale-105">
                                     Beli Sekarang — Rp {{ number_format($product->price, 0, ',', '.') }}
                                 </a>
                             @endauth
@@ -70,7 +76,7 @@
                             Beli Sekarang — Rp {{ number_format($product->price, 0, ',', '.') }}
                         </a>
                     @else
-                        <a href="{{ route('register') }}" class="inline-block bg-white text-indigo-700 px-8 py-4 rounded-xl hover:bg-gray-50 font-bold text-lg shadow-lg transition-all hover:scale-105">
+                        <a href="{{ $registerUrl }}" class="inline-block bg-white text-indigo-700 px-8 py-4 rounded-xl hover:bg-gray-50 font-bold text-lg shadow-lg transition-all hover:scale-105">
                             Beli Sekarang — Rp {{ number_format($product->price, 0, ',', '.') }}
                         </a>
                     @endauth
@@ -178,7 +184,7 @@
                     Beli Sekarang — Rp {{ number_format($product->price, 0, ',', '.') }}
                 </a>
             @else
-                <a href="{{ route('register') }}" class="inline-block bg-white text-indigo-700 px-8 py-4 rounded-xl hover:bg-gray-50 font-bold text-lg shadow-lg transition-all hover:scale-105">
+                <a href="{{ $registerUrl }}" class="inline-block bg-white text-indigo-700 px-8 py-4 rounded-xl hover:bg-gray-50 font-bold text-lg shadow-lg transition-all hover:scale-105">
                     Beli Sekarang — Rp {{ number_format($product->price, 0, ',', '.') }}
                 </a>
             @endauth
@@ -207,7 +213,7 @@
                     Beli Sekarang
                 </a>
             @else
-                <a href="{{ route('register') }}" class="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 font-bold text-sm sm:text-base shadow-md transition-all hover:scale-105 whitespace-nowrap">
+                <a href="{{ $registerUrl }}" class="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 font-bold text-sm sm:text-base shadow-md transition-all hover:scale-105 whitespace-nowrap">
                     Beli Sekarang
                 </a>
             @endauth
