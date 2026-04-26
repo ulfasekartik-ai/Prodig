@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\PhoneNumber;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -33,19 +34,32 @@ class MemberController extends Controller
 
     public function update(Request $request, User $user)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'whatsapp_number' => 'nullable|string|max:20',
-            'referral_code' => ['required', 'string', 'max:50', Rule::unique('users', 'referral_code')->ignore($user->id)],
-            'password' => 'nullable|string|min:8',
-            'upline_id' => 'nullable|exists:users,id',
-        ]);
+        $normalizedWhatsapp = PhoneNumber::normalize($request->input('whatsapp_number'));
+        $request->merge(['whatsapp_number' => $normalizedWhatsapp]);
+
+        $request->validate(
+            [
+                'name' => 'required|string|max:255',
+                'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+                'whatsapp_number' => [
+                    'nullable',
+                    'string',
+                    'max:20',
+                    Rule::unique('users', 'whatsapp_number')->ignore($user->id),
+                ],
+                'referral_code' => ['required', 'string', 'max:50', Rule::unique('users', 'referral_code')->ignore($user->id)],
+                'password' => 'nullable|string|min:8',
+                'upline_id' => 'nullable|exists:users,id',
+            ],
+            [
+                'whatsapp_number.unique' => 'Nomor WhatsApp ini sudah terdaftar. Gunakan nomor yang berbeda.',
+            ]
+        );
 
         $data = [
             'name' => $request->name,
             'email' => $request->email,
-            'whatsapp_number' => $request->whatsapp_number,
+            'whatsapp_number' => $normalizedWhatsapp,
             'referral_code' => strtoupper($request->referral_code),
             'upline_id' => $request->upline_id,
         ];

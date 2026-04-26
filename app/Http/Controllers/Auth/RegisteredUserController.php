@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Helpers\PhoneNumber;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -9,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -36,12 +38,25 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
-            'whatsapp_number' => ['nullable', 'string', 'max:20'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $normalizedWhatsapp = PhoneNumber::normalize($request->input('whatsapp_number'));
+        $request->merge(['whatsapp_number' => $normalizedWhatsapp]);
+
+        $request->validate(
+            [
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+                'whatsapp_number' => [
+                    'nullable',
+                    'string',
+                    'max:20',
+                    Rule::unique('users', 'whatsapp_number'),
+                ],
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            ],
+            [
+                'whatsapp_number.unique' => 'Nomor WhatsApp ini sudah terdaftar. Gunakan nomor yang berbeda.',
+            ]
+        );
 
         $uplineId = null;
         $refCode = $this->resolveRefCode($request);
@@ -55,7 +70,7 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'whatsapp_number' => $request->whatsapp_number,
+            'whatsapp_number' => $normalizedWhatsapp,
             'password' => Hash::make($request->password),
             'upline_id' => $uplineId,
         ]);
@@ -66,7 +81,15 @@ class RegisteredUserController extends Controller
 
         $intendedSlug = session('intended_product_slug');
         if ($intendedSlug) {
+            session()->keep([
+                'auto_coupon',
+                'auto_coupon_member_name',
+                'ref_code',
+                'intended_product_slug',
+            ]);
+
             $redirectUrl = route('checkout', $intendedSlug);
+
             return redirect($redirectUrl);
         }
 

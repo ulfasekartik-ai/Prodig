@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\XenditService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
@@ -17,6 +18,19 @@ class CheckoutController extends Controller
         $product = Product::with('landingPage')->where('slug', $slug)->where('is_active', true)->firstOrFail();
         $user = $request->user();
         $referrer = $this->resolveReferrer($request, $user);
+
+        Log::info('Checkout session', [
+            'user_id' => $user?->id,
+            'product_slug' => $slug,
+            'auto_coupon' => session('auto_coupon'),
+            'ref_code' => session('ref_code'),
+            'auto_coupon_member_name' => session('auto_coupon_member_name'),
+            'cookie_ref' => $request->cookie('ref'),
+            'upline_id' => $user?->upline_id,
+            'resolved_referrer_id' => $referrer?->id,
+        ]);
+
+        $this->ensureAutoCouponSession($product, $referrer);
 
         $autoCouponData = $this->buildAutoCouponData($product, $user, $referrer);
 
@@ -160,6 +174,35 @@ class CheckoutController extends Controller
         }
 
         return null;
+    }
+
+    private function ensureAutoCouponSession(Product $product, ?User $referrer): void
+    {
+        if (session('auto_coupon') || !$referrer) {
+            return;
+        }
+
+        $coupon = $referrer->coupons()
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('expired_at')->orWhere('expired_at', '>', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('max_uses')->orWhereColumn('used_count', '<', 'max_uses');
+            })
+            ->get()
+            ->first(fn ($c) => $c->isValidForProduct($product) && $product->price >= $c->min_purchase);
+
+        if ($coupon) {
+            session([
+                'auto_coupon' => $coupon->code,
+                'auto_coupon_member_name' => $referrer->name,
+            ]);
+            Log::info('Checkout auto_coupon recovered from referrer', [
+                'referrer_id' => $referrer->id,
+                'coupon_code' => $coupon->code,
+            ]);
+        }
     }
 
     private function buildAutoCouponData(Product $product, ?User $user, ?User $referrer): ?array

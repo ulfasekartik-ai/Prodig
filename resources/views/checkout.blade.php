@@ -28,7 +28,14 @@
                 <div class="flex-1 min-w-0">
                     <h2 class="text-lg font-semibold text-gray-900">{{ $product->title }}</h2>
                     <p class="text-gray-600 text-sm mt-1">{{ Str::limit($product->description, 100) }}</p>
-                    <div class="mt-3 text-2xl font-bold text-indigo-600" id="product-price">Rp {{ number_format($product->price, 0, ',', '.') }}</div>
+                    @if(isset($autoCouponData) && $autoCouponData)
+                        <div class="mt-3 flex items-baseline gap-2">
+                            <span class="text-base text-gray-400 line-through">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
+                            <span class="text-2xl font-bold text-indigo-600" id="product-price">{{ $autoCouponData['final_price_formatted'] }}</span>
+                        </div>
+                    @else
+                        <div class="mt-3 text-2xl font-bold text-indigo-600" id="product-price">Rp {{ number_format($product->price, 0, ',', '.') }}</div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -65,8 +72,11 @@
         <div class="border border-gray-200 rounded-lg p-4 mb-6">
             <label for="coupon_input" class="block text-sm font-medium text-gray-700 mb-2">Punya kode kupon?</label>
             <div class="flex gap-2">
-                <input type="text" id="coupon_input" placeholder="Masukkan kode kupon" value="{{ isset($autoCouponData) && $autoCouponData ? $autoCouponData['code'] : '' }}" class="flex-1 border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 uppercase text-sm">
-                <button type="button" id="apply-coupon" class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 font-medium text-sm whitespace-nowrap">Terapkan</button>
+                <input type="text" id="coupon_input" placeholder="Masukkan kode kupon"
+                    value="{{ isset($autoCouponData) && $autoCouponData ? $autoCouponData['code'] : '' }}"
+                    @if(isset($autoCouponData) && $autoCouponData) readonly @endif
+                    class="flex-1 border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 uppercase text-sm @if(isset($autoCouponData) && $autoCouponData) bg-gray-100 cursor-not-allowed @endif">
+                <button type="button" id="apply-coupon" @if(isset($autoCouponData) && $autoCouponData) disabled @endif class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 font-medium text-sm whitespace-nowrap @if(isset($autoCouponData) && $autoCouponData) opacity-50 cursor-not-allowed @endif">Terapkan</button>
             </div>
             <div id="coupon-message" class="mt-2 text-sm hidden"></div>
             <div id="coupon-summary" class="mt-3 {{ isset($autoCouponData) && $autoCouponData ? '' : 'hidden' }}">
